@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Task drop & drag</title>
+        <!-- start all link stylesheet Css -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+            integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css">
+        <!-- end all link stylesheet Css -->
+        <!-- start use lib chart.js page -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script> 
+    </head>
+        <style>
+            /* start default style page */
+            html, body {
+                height: 100%;
+            }
+            /* end default style page */
+
+            /* classes Help */
+            .color-w {
+                color: #fff !important;
+            }
+
+            /* start edit class Bootstrap 4 */
+            .dropdown-menu {
+                left: auto;
+                right: 0;
+            }
+            .bg-light {
+                border-bottom: 4px solid #535560;
+                background-color: #5b68aa!important;
+            }
+            /* end edit class Bootstrap 4 */
+
+            /* start style page */
+            .main .chart {
+                height: auto;
+                min-height: 980px;
+                padding: 20px 15px;
+                background-color: #e1e1e1;
+            }
+            .main .chart h1 {
+                color: #ffff;
+                padding: 10px 0;
+                font-size: larger;
+                text-align: center;
+                margin-bottom: 20px;            
+                background: #5b67aa;
+            }
+            .main .chart .child-1 {
+                cursor: grab;
+                height: 275px;
+                position: relative;
+                background: #fff;
+                border: 2px solid #b8b6b6;
+            }
+            .main .drag {
+                margin: 5px;
+                resize: both;
+                height: 310px;
+                overflow: auto;
+                min-height: 310px;
+                position: relative;
+                display: inline-block;
+                width: calc(100% / 4 - 14px);
+                background-color: #849cb3!important;
+            }
+            .main .drag.active::after {
+                content: "\f582";;
+            }
+            .main .drag button:first-of-type {
+                top: 6px;
+                left: 6px;
+                z-index: 100;
+                color: #fff;
+                font-weight: 800;
+                padding: 6px 20px;                
+                position: absolute;
+                border-color: #5b67aaab !important;                
+                background-color: #5b67aaab !important;
+                /* prefix css 3 */
+                box-shadow: 1px 2px 4px 1px #5b67aaab;
+                -o-box-shadow: 1px 2px 4px 1px #5b67aaab;
+                -ms-box-shadow: 1px 2px 4px 1px #5b67aaab;
+                -moz-box-shadow: 1px 2px 4px 1px #5b67aaab;
+                -webkit-box-shadow: 1px 2px 4px 1px #5b67aaab;            
+            }                                           
+            .main .drag::after {
+                top: 50%;
+                left: 50%;
+                z-index: 1;
+                color: #fff;
+                font-size: 48px;
+                /* use CSS Pseudo-elements Font Awesome 5 */
+                content: "\f11a";
+                font-weight: 900;
+                position: absolute;
+                font-family: "Font Awesome 5 Free";
+
+                /* prefix css 3 */
+                transform: translate(-50%, -50%);
+                -o-transform: translate(-50%, -50%);
+                -ms-transform: translate(-50%, -50%);
+                -moz-transform: translate(-50%, -50%);
+                -webkit-transform: translate(-50%, -50%);
+                text-shadow: 0px 0px 5px #504e4e;
+                -o-text-shadow: 0px 0px 5px #504e4e;
+                -ms-text-shadow: 0px 0px 5px #504e4e;
+                -moz-text-shadow: 0px 0px 5px #504e4e;
+                -webkit-text-shadow: 0px 0px 5px #504e4e;
+            }
+            .main .drag::after:hover {
+                content: '\f582';
+            }
+            .main .drag .child-1 {
+                top: 0;
+                left: 0;
+                z-index: 2;
+                width: 100%;
+                height: 100%;
+                cursor: grab;
+                background: #fff;
+                position: absolute;
+                margin: 0 !important;
+                border: 2px solid #b8b6b6;           
+            }
+            /* start style page */
+
+        </style>
+
+    <body >
+        <!-- start use navbar Bootstrap 4 -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand color-w" href="#">Task</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item active">
+                        <button id="rest_Boxs" class="btn btn-danger m-1">Reset Boxs</button>
+                    </li>
+
+                    <li class="nav-item active">
+                        <button id="rest_Dimesion" class="btn btn-danger m-1">Reset Dimesion</button>
+                    </li>                                             
+                </ul>                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle navbar-brand color-w" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <img src="https://getbootstrap.com/docs/4.5/assets/brand/bootstrap-solid.svg" width="30" height="30" alt="" loading="lazy">
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!-- end use navbar Bootstrap 4 -->
+
+        <!-- start div main page -->
+        <div class="main">
+            <!-- container class Bootstrap 4 -->
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- grid system Bootstrap 4 -->
+                    <div id="dragMain" class="col-sm-12 col-md-4 col-lg-2 chart shadow-lg" ondrop="drop(event)" ondragover="allowDrop(event)" >
+                        <h1>Drop Any Chart </h1>
+
+                        <div class="child-1 child_1 my-2 " id="child-1"  draggable="true"  ondragstart="drag(event)">
+                            <!-- use lib Chart.js -->
+                            <canvas class="myChart_1" width="400" height="400"></canvas>
+                        </div>
+                        <div class="child-1 child_2 my-2" id="child-2" draggable="true"  ondragstart="drag(event)">
+                            <!-- use lib Chart.js -->
+                            <canvas class="myChart_2" width="400" height="400"></canvas>
+                        </div>
+                        <div class="child-1 child_3 my-2" id="child-3" draggable="true"  ondragstart="drag(event)">
+                            <!-- use lib Chart.js -->
+                            <canvas class="myChart_3" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                    <!-- grid system Bootstrap 4 -->
+                    <div class="col-sm-12 col-md-8 col-lg-10 d-flex flex-wrap">
+                        <div id="drag_1" class="drag one tow there" data-target="drag_target" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                            <button type="button" class="btn">1</button>             
+                        </div>
+                        <div id="drag_2" class="drag one tow there" data-target="drag_target" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                            <button type="button" class="btn">2</button>
+                        </div>
+                        <div id="drag_3" class="drag one tow there" data-target="drag_target" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                            <button type="button" class="btn">3</button>
+                        </div>
+                        <div id="drag_4" class="drag one tow there" data-target="drag_target" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)">
+                            <button type="button" class="btn">4</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- end div main page -->
+
+        
+        
+        <!-- start main script page -->
+        <script>
+            // <!-- Link documentation chart.js => https://www.chartjs.org/docs/latest/ -->
+            function LoopChart() {
+                var ctx1 = document.querySelectorAll('.myChart_1');
+                var ctx2 = document.querySelectorAll('.myChart_2');
+                var ctx3 = document.querySelectorAll('.myChart_3');
+
+                for (let i = 0; i < ctx1.length; i++) {
+                    var myChart = new Chart(ctx1[i].getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ['HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE', 'HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE'],
+                            datasets: [{
+                                label: '# of Votes',
+                                data: [50, 55, 49, 50, 45, 50, 55, 40, 45, 50, 50, 55, 49, 50, 45, 50, 55, 40, 45, 50, 100],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.0)',
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 0)',
+                                    'rgba(255, 206, 86, 0)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)'                                                       
+                                ],
+                                borderWidth: 1,
+                                
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onResize:(instance)=>{
+                                instance.canvas.style.height = 'inherit '
+                                instance.canvas.style.width = 'inherit '
+                            }
+                        }
+                    });                
+                }
+                for (let i = 0; i < ctx2.length; i++) {
+                    var myChart = new Chart(ctx2[i].getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE', 'HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE', 'HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE', 'HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', 'REACT NATIVE',],
+                            datasets: [{
+                                label: '# of Votes',
+                                data: [50, 55, 49, 50, 45, 50, 55, 40, 45, 60, 50, 55, 49, 50, 45, 50, 55, 40, 45, 60, 50, 55, 49, 50, 45, 50, 55, 40, 45, 60, 50, 55, 49, 50, 45, 50, 55, 40, 45, 60, 50, 55, 49, 50, 45, 50, 55, 40, 45, 60, 50, 55, 49, 50, 45, 50, 55, 40, 45, 100],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.0)',
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 0)',
+                                    'rgba(255, 206, 86, 0)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 0)',
+                                    'rgba(255, 159, 64, 0)',
+                                ],
+                                borderWidth: 3,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onResize:(instance)=>{
+                                instance.canvas.style.height = 'inherit '
+                                instance.canvas.style.width = 'inherit '
+                            }
+                        }
+                    }); 
+                }
+
+                for (let i = 0; i < ctx3.length; i++) {
+                    var myChart = new Chart(ctx3[i].getContext('2d'), {
+                        type: 'radar',
+                        data: {
+                            labels: ['HTML', 'CSS', 'Pug.Js', 'SASS', 'JAVASCRIPT', 'ANGULAR', 'REACT.JS', 'VUE.JS', 'ES6', ],
+                            datasets: [{
+                                label: '# of Votes',
+                                data: [100, 80, 10, 70, 20, 50, 55, 40, 45, 60, 50, 90, 49, 80, 45, 50, 100, 40, 45, 100],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.0)',
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 0)',
+                                    'rgba(255, 206, 86, 0)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 0)',
+                                    'rgba(255, 159, 64, 0)',
+                                ],
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onResize:(instance)=>{
+                                instance.canvas.style.height = 'inherit '
+                                instance.canvas.style.width = 'inherit '
+                            }
+                        }
+                    });
+                } 
+            }
+            LoopChart()
+            
+
+            // Box all global variables
+            var Bol,
+                x = [],
+                arr = [],
+                dimesion = [],
+                Eldrag = document.querySelectorAll('.drag'),            
+                getDimesion = JSON.parse(localStorage.getItem('dimesion')),
+                getDataElment = JSON.parse(localStorage.getItem('dataDrop_Drag'));
+
+            // // if getDataElment has Data or save Data
+            if (getDataElment != null) {
+                for (let i = 0; i < getDataElment.arr.length; i++) { 
+                                      
+                    if (getDataElment.arr[i].state === "clone") {
+
+                        let clone = document.querySelector(`.${getDataElment.arr[i].class}`).cloneNode(true);
+                            clone.setAttribute('id', getDataElment.arr[i].child)
+                        document.getElementById(getDataElment.arr[i].parent).appendChild(clone);  
+
+                    } else if(getDataElment.arr[i].state === "move") {
+
+                        let node = document.getElementById(getDataElment.arr[i].child);
+                        document.getElementById(getDataElment.arr[i].parent).appendChild(node);
+
+                    }
+                    
+                }
+                LoopChart()
+                
+            } 
+
+            // if getDimesion has Data or save Data
+            if (getDimesion != null) {
+                for (let i = 0; i < getDimesion.dimesion.length; i++) { 
+
+                    let node_id =  document.getElementById(getDimesion.dimesion[i].id);
+                    
+                    // use es6 template literals => `${}`
+                    node_id.style.width = `${getDimesion.dimesion[i].w}px`; 
+                    node_id.style.height = `${getDimesion.dimesion[i].h}px`; 
+                }
+            }   
+
+            // if Element Drop is move over or touche ev Element function is run
+            function allowDrop(ev) {
+                ev.preventDefault();
+                
+            }
+
+            // if this Element move to drop function will save dataTransfer this Element
+            function drag(ev) {
+                ev.dataTransfer.setData("text", ev.target.id);
+                ev.target.parentElement.getAttribute('data-target') === 'drag_target' ? Bol = true : Bol = false;
+            }
+
+            function dragEnter(ev) {
+                ev.target.classList.add('active')                
+            }
+
+            function dragLeave(ev) {
+                ev.target.classList.remove('active')
+                
+            }        
+            
+            // getData dataTransfer & save info Elemt to localStorage
+            function drop(ev) {
+
+                    if (ev.target.id != 'dragMain' && ev.target.children.length === 1) {
+                        ev.preventDefault();
+
+                        var data = ev.dataTransfer.getData("text");
+
+                        // if Clone
+                        if (Bol) {
+                            ev.target.appendChild(document.getElementById(data));
+                            // if getDataElment has Data or save Data
+                            if (getDataElment != null) {
+
+                                // push new Data with old Data
+                                arr.push(...getDataElment.arr, {
+                                    "state": 'move',
+                                    "child": ev.target.lastElementChild.id,
+                                    "class": ev.target.lastElementChild.classList[1],
+                                    "parent": ev.target.lastElementChild.parentElement.id
+                                })
+                            } else {
+
+                                // push new Data
+                                arr.push({
+                                    "state": 'move',
+                                    "child": ev.target.lastElementChild.id,
+                                    "class": ev.target.lastElementChild.classList[1],
+                                    "parent": ev.target.lastElementChild.parentElement.id
+                                }); 
+                                
+                            }                             
+                        } else {
+                            var clone = document.getElementById(data).cloneNode(true);  
+                            ev.target.appendChild(clone);
+                            clone.setAttribute('id', `${ev.target.lastElementChild.id}_${document.querySelectorAll('.child_1').length}`)
+                            // if getDataElment has Data or save Data
+                            if (getDataElment != null) {
+
+                                // push new Data with old Data
+                                arr.push(...getDataElment.arr, {
+                                    "state": 'clone',
+                                    "child": ev.target.lastElementChild.id,
+                                    "class": ev.target.lastElementChild.classList[1],
+                                    "parent": ev.target.lastElementChild.parentElement.id
+                                })
+                            } else {
+
+                                // push new Data
+                                arr.push({
+                                    "state": 'clone',
+                                    "child": ev.target.lastElementChild.id,
+                                    "class": ev.target.lastElementChild.classList[1],
+                                    "parent": ev.target.lastElementChild.parentElement.id
+                                }); 
+                                
+                            }                             
+                        }                                                                                               
+                        // save Data Elemnt to localStorage
+                        localStorage.setItem('dataDrop_Drag', JSON.stringify({arr}));  
+                        LoopChart()
+                }
+            
+            }           
+
+            // Get all Element has class drag
+            Eldrag.forEach(el => {
+
+                el.onmouseup = (e) => {
+                    // if getDimesion has Data or save Data
+                    if (getDimesion != null) {
+
+                        // push new Data with old Data
+                        dimesion.push(...getDimesion.dimesion, {
+                            'id': el.id,
+                            'w':  el.clientWidth,
+                            'h': el.clientHeight
+                        })
+
+                    } else {
+
+                        // push new Data
+                        dimesion.push({
+                            'id': el.id,
+                            'w':  el.clientWidth,
+                            'h': el.clientHeight
+                        })   
+
+                    }
+                    // save Data Elemnt to localStorage
+                    localStorage.setItem('dimesion', JSON.stringify({dimesion})) 
+                }
+            });
+
+            // if click the box is Empty
+            document.getElementById('rest_Boxs').onclick = () => {
+                localStorage.removeItem('dataDrop_Drag')
+                window.location.reload()
+            }
+            // if click the dimesion is resat
+            document.getElementById('rest_Dimesion').onclick = () => {
+                localStorage.removeItem('dimesion')
+                window.location.reload()
+            }                               
+        </script>       
+        <!-- end main script page -->
+
+        <!-- start all script Libs javascript -->
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+        <!-- start all script Libs javascript -->  
+</html>'
